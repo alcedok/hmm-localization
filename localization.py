@@ -25,31 +25,30 @@ def get_state_probabilities(observation, transition_matrix, observation_matrix, 
         observation_history: list of observations (numpy arrays)
     
     Returns:
-        numpy array of shape (N, N) representing state probabilities    
-    
-    '''    
+        numpy array of shape (N*N,) representing state probabilities
+    '''
     N = int(np.sqrt(transition_matrix.shape[0]))  # Extract grid size (N x N)
-    num_states = N * N  # Total states
+    num_states = N * N  # Total number of states
+    num_observations = observation_matrix.shape[1]  # Total number of unique observations (Z)
     
-    # Initial uniform belief over states if no history exists
-    if not observation_history:
-        belief = np.full(num_states, 1 / num_states)
-    else:
-        belief = np.ones(num_states)
-    
-    # Iterate through the observation history
+    # Initial uniform belief if there's no history
+    belief = np.full(num_states, 1 / num_states)
+    print(belief)
+    # Process the observation history
     for obs in observation_history:
-        # Step 1: Prediction (belief propagation)
+        # Prediction step
         belief = np.dot(transition_matrix.T, belief)
         
-        # Step 2: Correction (incorporate the observation)
-        observation_index = int("".join(map(str, obs)), 2)  # Binary vector to integer index
-        belief = observation_matrix[:, observation_index] * belief
+        # Correction step for historical observations
+        obs_index = int("".join(map(str, obs)), 2)  # Convert binary vector to integer index
+        belief = observation_matrix[:, obs_index] * belief
         
         # Normalize the belief
         belief /= np.sum(belief)
-    
-    # Reshape the final belief into an (N, N) grid
-    state_probabilities = belief.reshape(N, N)
-    
-    return state_probabilities 
+
+    # Incorporate the latest observation
+    obs_index = int("".join(map(str, observation)), 2)  # Convert binary vector to integer index
+    belief = observation_matrix[:, obs_index] * belief
+    belief /= np.sum(belief)  # Normalize again
+
+    return belief  # Return as a flat array of shape (N*N,)
