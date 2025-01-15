@@ -33,7 +33,7 @@ def get_state_probabilities(observation, transition_matrix, observation_matrix, 
     
     # Initial uniform belief if there's no history
     belief = np.full(num_states, 1 / num_states)
-    print(belief)
+    
     # Process the observation history
     for obs in observation_history:
         # Prediction step
