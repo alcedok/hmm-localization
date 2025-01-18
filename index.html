@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Sequence</title>
+    <style>
+        #container {                 /* Container for dropdown and controls */
+            display: flex;           /* Use flexbox for horizontal layout */
+            align-items: center;     /* Vertically align items */
+            justify-content: left; /*Centers the content horizontally*/
+            margin-bottom: 10px;     /* Add some space below */
+        }
+        #sequence {
+            max-width: 100%;
+            display: block;
+            margin: 0 auto;
+        }
+        .controls {
+            margin-left: 50px; 
+            display: flex;  /* Use flexbox for horizontal layout of buttons */
+            gap: 5px;       /* Add some space between buttons */
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <select id="directorySelect" onchange="changeDirectory()">
+            <option value="grid-N20_obstacles-0.0_maxsteps-100">grid-N20_obstacles-0.0_maxsteps-100</option>
+            <option value="grid-N20_obstacles-0.3_maxsteps-100">grid-N20_obstacles-0.3_maxsteps-100</option>
+            <option value="grid-N20_obstacles-0.5_maxsteps-100">grid-N20_obstacles-0.5_maxsteps-100</option>
+            <option value="grid-N30_obstacles-0.3_maxsteps-100">grid-N30_obstacles-0.3_maxsteps-100</option>
+            <option value="grid-N30_obstacles-0.5_maxsteps-100">grid-N30_obstacles-0.5_maxsteps-100</option>
+        </select>
+        <div class="controls">
+            <button onclick="prevFrame()">Previous</button>
+            <button onclick="togglePlay()">Play/Pause</button>
+            <button onclick="toggleReset()">Reset</button>
+            <button onclick="nextFrame()">Next</button>
+        </div>
+    </div>
+    <img id="sequence" src="results/rid-N20_obstacles-0.0_maxsteps-100/frame-0.png">
+
+    <script>
+        let currentDirectory = "grid-N20_obstacles-0.0_maxsteps-100"; // Initial directory
+        let numFrames = 0;
+        let currentFrame = 0;
+        let isPlaying = false;
+        let intervalId;
+        const imageElement = document.getElementById('sequence');
+
+        function updateFrame() {
+            imageElement.src = `results/${currentDirectory}/frame-${currentFrame}.png`;
+        }
+
+        function nextFrame() {
+            currentFrame = (currentFrame + 1) % numFrames;
+            updateFrame();
+        }
+
+        function prevFrame() {
+            currentFrame = (currentFrame - 1 + numFrames) % numFrames;
+            updateFrame();
+        }
+
+        function play() {
+            intervalId = setInterval(nextFrame, 250);
+        }
+
+        function pause() {
+            clearInterval(intervalId);
+        }
+
+        function reset() {
+            currentFrame = 0;
+            updateFrame();
+        }
+
+        function togglePlay() {
+            isPlaying = !isPlaying;
+            if (isPlaying) {
+                play();
+            } else {
+                pause();
+            }
+        }
+
+        function toggleReset() {
+            reset();
+        }
+
+        function changeDirectory() {
+            currentDirectory = document.getElementById("directorySelect").value;
+            // Extract numFrames from directory name
+            const parts = currentDirectory.split("_");
+            if (parts.length === 2) {
+                numFrames = parseInt(parts[1], 10);
+            } else {
+                console.error("Invalid directory name format:", currentDirectory);
+                numFrames = 100;
+            }
+            currentFrame = 0; // Reset frame
+            updateFrame(); //Update the displayed image
+        }
+
+        // Initial setup (extract numFrames from initial directory)
+        const initialParts = currentDirectory.split("_");
+            if (initialParts.length === 3) {
+                numFrames = parseInt(initialParts[2].split("-")[1], 10);
+            } else {
+                console.error("Invalid initial directory name format:", currentDirectory);
+                numFrames = 100; // Or some default value
+            }
+        updateFrame();//Initial display
+    </script>
+</body>
+</html>
