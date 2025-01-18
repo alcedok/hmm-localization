@@ -120,6 +120,7 @@ class GridWorldEnv(gym.Env):
 		# 8+1 actions, move to any of the 8 neighoring cells or stay
 		self.action_space = gym.spaces.Discrete(8+1)
 		self.valid_actions =  {member.name for member in Actions}
+		self.prev_action = Actions.STAY
 
 		## Environment models
 		self.grid = np.zeros((self.N,self.N))
@@ -394,6 +395,7 @@ class GridWorldEnv(gym.Env):
 		self.all_obstacle_pos = obstacles_xy
 		self.all_free_cell_pos = free_xy
 		self.cur_step = 1
+		self.prev_action = Actions.STAY 
 
 		# construct environment models/matrices
 		self.calculate_transition_matrix()
@@ -429,6 +431,7 @@ class GridWorldEnv(gym.Env):
 		truncated = False
 		reward = 0
 		self.cur_step += 1
+		self.prev_action = action
 
 		return self.sensor_obs, reward, terminated, truncated, info
 	
@@ -449,14 +452,21 @@ class GridWorldEnv(gym.Env):
 	
 	def render_gridworld(self, state_probabilities=None, prob_threshold=1e-8):
 		''' create image of the gridworld with optional state_probabilities'''
+		# get current state probabilities
+		cur_state_prob = state_probabilities[-1]
+		# get minimum from history
+		min_prob = np.min(np.stack(state_probabilities))
+		# get maximum from history
+		max_prob = np.max(np.stack(state_probabilities))
+
 		# validate the type of state_probabilities
-		if (state_probabilities is not None) and (not isinstance(state_probabilities, np.ndarray)):
-			raise TypeError('render expects `state_probabilities` to be a numpy array. Received type: {}'.format(type(state_probabilities)))
+		if (state_probabilities is not None) and (not isinstance(cur_state_prob, np.ndarray)):
+			raise TypeError('render expects `state_probabilities` to be a list of numpy arrays. Received type: {}'.format(type(cur_state_prob)))
 		# validate the shape of state probabilties
-		if isinstance(state_probabilities, np.ndarray):
+		if isinstance(cur_state_prob, np.ndarray):
 			expected_shape = (self.num_states,)
-			if state_probabilities.shape != expected_shape:
-				raise ValueError('invalid shape for `state_probabilities`. Received: {}, expected {}'.format(state_probabilities.shape, expected_shape))
+			if cur_state_prob.shape != expected_shape:
+				raise ValueError('invalid shape for `state_probabilities`. Received: {}, expected {}'.format(cur_state_prob.shape, expected_shape))
 
 		# canvas = pygame.Surface((self.window_size, self.window_size), pygame.SRCALPHA)
 		canvas = pygame.Surface((self.window_size, self.window_size))
@@ -475,15 +485,15 @@ class GridWorldEnv(gym.Env):
 			)
 
 		# draw state probabilities heatmap
-		if state_probabilities is not None:
+		if cur_state_prob is not None:
 			# set very low probabilities to zero (using threshold)
-			state_probabilities = np.where(state_probabilities<prob_threshold, 0, state_probabilities)
+			cur_state_prob = np.where(cur_state_prob<prob_threshold, 0, cur_state_prob)
 			# get custom color map
 			cmap = self.custom_colormap()
 			# normalize color map to the range of current probabilities
-			norm = Normalize(vmin=min(state_probabilities), vmax=max(state_probabilities))
+			norm = Normalize(vmin=min_prob, vmax=max_prob)
 			# get corresponding (r,g,b)
-			probs_to_rgba = cmap(norm(state_probabilities))
+			probs_to_rgba = cmap(norm(cur_state_prob))
 			probs_to_rgb = (probs_to_rgba[:,:3]*255).astype(int)
 
 			# for each free-cell set the color given the probability
@@ -607,7 +617,7 @@ class GridWorldEnv(gym.Env):
 		# full range of colors from the default colormap
 		plasma = plt.cm.plasma_r(np.linspace(0, 1, 256))
 		# number of steps for the transition to white
-		n_white = 50
+		n_white = 1
 		# RGB of the last color in colormap
 		last_color = plasma[0, :3]  #
 		# gradient of white to the last color
@@ -630,7 +640,7 @@ class GridWorldEnv(gym.Env):
 		# gridworld on left side subplot
 		ax1.imshow(gridworld_render)
 		ax1.axis('off')
-		ax1.set_title('GridWorld, t={}'.format(self.cur_step))
+		ax1.set_title('t: {:3d} | prev-action: {}'.format(self.cur_step, self.prev_action), loc='left')
 
 		# sensor readings on right side subplot
 		ax2.imshow(observation_render)
