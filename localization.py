@@ -5,13 +5,24 @@ Self-Localization code using Hidden Markov Model (HMM)
 import numpy as np
 from typing import Literal
 
-def init_probabilities(num_states):
-    '''We do not assume any bias on initial position, so we initialize with a random distribution'''
-    random_init = np.random.random_sample(size=(num_states,))
-    # normalize so all add to one
-    random_init_normalized = random_init / np.sum(random_init)
-    assert np.allclose(np.sum(random_init_normalized), 1), 'Initial probabilities do not sum to one.'
-    return random_init_normalized
+def init_probabilities(num_states, mode: Literal['uniform', 'zero'] = 'zero'):
+    '''
+    We do not assume any bias on initial position.
+    Supported initialization modes: 
+    - uniform: unifrom probability across all states
+    - zero: all probabilities start at zero
+    '''
+    if mode == 'uniform':
+        random_init = np.random.random_sample(size=(num_states,))
+        # normalize so all add to one
+        init_probs = random_init / np.sum(random_init)
+        assert np.allclose(np.sum(init_probs), 1), 'Initial probabilities do not sum to one.'
+    elif mode == 'zero':
+        init_probs = np.zeros(shape=(num_states, ))
+    else: 
+        raise NotImplementedError('mode {} is not currently supported.'.format(mode))
+    return init_probs
+
 
 def get_state_probabilities(observation, transition_matrix, observation_matrix, observation_history=[], eps=1e-10):
     '''
