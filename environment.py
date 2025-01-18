@@ -141,6 +141,7 @@ class GridWorldEnv(gym.Env):
 		self.reset_env_model_properties()
 
 		## Rendering settings
+		self.cur_step = 1
 		self.window_size = 512  # size of rendering window
 		self.render_mode = render_mode
 	
@@ -392,6 +393,7 @@ class GridWorldEnv(gym.Env):
 		self.grid = grid
 		self.all_obstacle_pos = obstacles_xy
 		self.all_free_cell_pos = free_xy
+		self.cur_step = 1
 
 		# construct environment models/matrices
 		self.calculate_transition_matrix()
@@ -426,6 +428,7 @@ class GridWorldEnv(gym.Env):
 		terminated = False
 		truncated = False
 		reward = 0
+		self.cur_step += 1
 
 		return self.sensor_obs, reward, terminated, truncated, info
 	
@@ -627,7 +630,7 @@ class GridWorldEnv(gym.Env):
 		# gridworld on left side subplot
 		ax1.imshow(gridworld_render)
 		ax1.axis('off')
-		ax1.set_title('GridWorld')
+		ax1.set_title('GridWorld, t={}'.format(self.cur_step))
 
 		# sensor readings on right side subplot
 		ax2.imshow(observation_render)
