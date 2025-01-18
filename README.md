@@ -2,8 +2,8 @@
 # Localization with HMMs
 
 <p align="center">
-  <img src="figures/grid-N20_obstacles-0.0_maxsteps-100.gif" width=200 style="display: inline-block; margin-right: 10px; max-width: 50%; height: auto;">
-  <img src="figures/grid-N30_obstacles-0.5_maxsteps-100.gif" width=200 style="display: inline-block; max-width: 50%; height: auto;">
+  <img src="figures/grid-N20_obstacles-0.0_maxsteps-100.gif" width=300 style="display: inline-block; margin-right: 10px; max-width: 50%; height: auto;">
+  <img src="figures/grid-N30_obstacles-0.5_maxsteps-100.gif" width=300 style="display: inline-block; max-width: 50%; height: auto;">
 </p>
 
 
