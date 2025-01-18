@@ -3,6 +3,7 @@ Self-Localization code using Hidden Markov Model (HMM)
 '''
 
 import numpy as np
+from typing import Literal
 
 def init_probabilities(num_states):
     '''We do not assume any bias on initial position, so we initialize with a random distribution'''
@@ -12,7 +13,7 @@ def init_probabilities(num_states):
     assert np.allclose(np.sum(random_init_normalized), 1), 'Initial probabilities do not sum to one.'
     return random_init_normalized
 
-def get_state_probabilities(observation, transition_matrix, observation_matrix, observation_history=[]):
+def get_state_probabilities(observation, transition_matrix, observation_matrix, observation_history=[], eps=1e-10):
     '''
     Localization must return a numpy array of shape (Z,) corresponding to the probability distribution over states
     
@@ -42,13 +43,15 @@ def get_state_probabilities(observation, transition_matrix, observation_matrix, 
         # Correction step for historical observations
         obs_index = int("".join(map(str, obs)), 2)  # Convert binary vector to integer index
         belief = observation_matrix[:, obs_index] * belief
-        
+        belief += eps # add small number to avoid dividing by zero 
+
         # Normalize the belief
         belief /= np.sum(belief)
 
     # Incorporate the latest observation
     obs_index = int("".join(map(str, observation)), 2)  # Convert binary vector to integer index
     belief = observation_matrix[:, obs_index] * belief
+    belief += eps # add small number to avoid dividing by zero 
     belief /= np.sum(belief)  # Normalize again
 
     return belief  # Return as a flat array of shape (N*N,)
