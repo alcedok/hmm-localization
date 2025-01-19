@@ -23,46 +23,107 @@ def init_probabilities(num_states, mode: Literal['uniform', 'zero'] = 'zero'):
         raise NotImplementedError('mode {} is not currently supported.'.format(mode))
     return init_probs
 
+def get_smoothed_state_probabilities(observation, transition_matrix, observation_matrix, observation_history=[], eps=1e-10):
+    '''
+    Computes smoothed state probabilities using the forward-backward algorithm (filtering + smoothing)
+    
+    inputs:
+        observation: numpy array of shape (4,)
+        transition_matrix: numpy array of shape (N*N, N*N)
+        observation_matrix: numpy array of shape (N*N, Z)
+        observation_history: list of observations (numpy arrays) prior to the current observation
+        eps: small constant added to avoid division by zero in normalization
+    
+    outputs:
+        numpy array of shape (len(observation_history)+1, N*N), smoothed probabilities for each state at each time step
+    '''
+    import numpy as np
+
+    N = int(np.sqrt(transition_matrix.shape[0]))
+    num_states = N * N
+    # all time steps including the current observation
+    T = len(observation_history) + 1  
+
+    # init alpha (forward probs), beta (backward probs) and smoothed
+    alpha = np.zeros((T, num_states))
+    beta = np.zeros((T, num_states))
+    smoothed_probs = np.zeros((T, num_states))
+
+    # init uniform belief
+    alpha[0] = np.full(num_states, 1 / num_states)
+
+    # forward pass
+    for t, obs in enumerate(observation_history):
+        obs_index = int("".join(map(str, obs)), 2)  # convert binary vector to integer index
+        # prediction step
+        alpha[t + 1] = np.dot(transition_matrix.T, alpha[t])
+        # correction step
+        alpha[t + 1] *= observation_matrix[:, obs_index]
+        alpha[t + 1] += eps  # add small number to avoid dividing by zero 
+        # normalize
+        alpha[t + 1] /= np.sum(alpha[t + 1])
+
+    # include the current observation into forward pass
+    obs_index = int("".join(map(str, observation)), 2)
+    alpha[-1] = np.dot(transition_matrix.T, alpha[-2])
+    alpha[-1] *= observation_matrix[:, obs_index]
+    alpha[-1] += eps  # add small number to avoid dividing by zero 
+    alpha[-1] /= np.sum(alpha[-1])
+
+    # backward pass
+    beta[-1] = np.ones(num_states)  # initialize backward probs at the final time step
+    # iterate backwards, skip the last 
+    for t in range(T - 2, -1, -1):
+        obs_index = int("".join(map(str, observation_history[t])), 2) if t < T - 1 else obs_index
+        beta[t] = np.dot(transition_matrix, observation_matrix[:, obs_index] * beta[t + 1])
+        beta[t] += eps  # add small number to avoid dividing by zero 
+        beta[t] /= np.sum(beta[t])
+
+    # combine alpha and beta to compute smoothed probs
+    for t in range(T):
+        smoothed_probs[t] = alpha[t] * beta[t]
+        smoothed_probs[t] += eps # add small number to avoid dividing by zero 
+        # normalize
+        smoothed_probs[t] /= np.sum(smoothed_probs[t])
+
+    return smoothed_probs[-1]
 
 def get_state_probabilities(observation, transition_matrix, observation_matrix, observation_history=[], eps=1e-10):
-    '''
-    Localization must return a numpy array of shape (Z,) corresponding to the probability distribution over states
+    '''    
+    Filtering process (forward only); estimative state given the current observations
     
-    Computes state probabilities using Hidden Markov Model (HMM) for localization.
-    
-    Parameters:
-        observation: numpy array of shape (4,), the current observation
-        transition_matrix: numpy array of shape (N*N, N*N), transition probabilities
-        observation_matrix: numpy array of shape (N*N, Z), observation probabilities
+    inputs:
+        observation: numpy array of shape (4,)
+        transition_matrix: numpy array of shape (N*N, N*N)
+        observation_matrix: numpy array of shape (N*N, Z)
         observation_history: list of observations (numpy arrays)
     
-    Returns:
-        numpy array of shape (N*N,) representing state probabilities
+    outputs:
+        state probabilities as numpy array of shape (N*N,)
     '''
-    N = int(np.sqrt(transition_matrix.shape[0]))  # Extract grid size (N x N)
-    num_states = N * N  # Total number of states
-    num_observations = observation_matrix.shape[1]  # Total number of unique observations (Z)
+    N = int(np.sqrt(transition_matrix.shape[0])) 
+    num_states = N * N 
     
-    # Initial uniform belief if there's no history
+    # init uniform belief if there's no history
     belief = np.full(num_states, 1 / num_states)
     
-    # Process the observation history
+    # for each item in observation history
     for obs in observation_history:
-        # Prediction step
+        # prediction step
         belief = np.dot(transition_matrix.T, belief)
         
-        # Correction step for historical observations
+        # correction step for historical observations
         obs_index = int("".join(map(str, obs)), 2)  # Convert binary vector to integer index
         belief = observation_matrix[:, obs_index] * belief
         belief += eps # add small number to avoid dividing by zero 
 
-        # Normalize the belief
+        # normalize
         belief /= np.sum(belief)
 
-    # Incorporate the latest observation
+    # include the latest observation
     obs_index = int("".join(map(str, observation)), 2)  # Convert binary vector to integer index
     belief = observation_matrix[:, obs_index] * belief
     belief += eps # add small number to avoid dividing by zero 
-    belief /= np.sum(belief)  # Normalize again
+    belief /= np.sum(belief)  # normalize again
 
-    return belief  # Return as a flat array of shape (N*N,)
+    return belief
