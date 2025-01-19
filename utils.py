@@ -33,7 +33,7 @@ def plot_gaussian_grid(grid, cmap='plasma_r'):
 
 def load_env(gridworld_dimensions=20, obstacle_ratio=0.4):
 	# validate gridworld dimensions per assignment requirements
-	assert gridworld_dimensions in set([20,30]), 'gridworld_dimensions must be 20 or 30. Received: {}'.format(gridworld_dimensions)
+	assert gridworld_dimensions in set([20,30,100]), 'gridworld_dimensions must be 20 or 30. Received: {}'.format(gridworld_dimensions)
 	assert 0.0 <= obstacle_ratio <= 1.0, 'obstacle_ratio value must be in range [0,1]'
 
 	env_config = {
@@ -76,9 +76,9 @@ def simulate_dummy_scenario(gridworld_dimensions=20, obstacle_ratio=0.4,
 	
 	# init state probabilities 
 	init_probs = gaussian_2d_array(info['grid_shape'], sigmas[0], center=info['agent_position']).flatten()
-	
+	probs = [init_probs]
 	# generate initial frame
-	frame = env.render(state_probabilities=init_probs)
+	frame = env.render(state_probabilities=probs)
 	frames = [frame]
 	
 	# simulate multiple steps
@@ -89,8 +89,9 @@ def simulate_dummy_scenario(gridworld_dimensions=20, obstacle_ratio=0.4,
 		observation, _, _, _, info = env.step(action=action)
 		# compute new probabilities
 		probs_t = gaussian_2d_array(info['grid_shape'], sigmas[t], center=info['agent_position']).flatten()
+		probs.append(probs_t)
 		# generate new frame
-		frame = env.render(state_probabilities=probs_t)
+		frame = env.render(state_probabilities=probs)
 		frames.append(frame)
 	
 	# save frames to gif
