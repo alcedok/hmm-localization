@@ -3,7 +3,7 @@
 
 <p align="center">
   <img src="figures/grid-N20_obstacles-0.0_maxsteps-100.gif" width=300 style="display: inline-block; margin-right: 10px; max-width: 50%; height: auto;">
-  <img src="figures/grid-N30_obstacles-0.5_maxsteps-100.gif" width=300 style="display: inline-block; max-width: 50%; height: auto;">
+  <img src="figures/grid-N20_obstacles-0.3_maxsteps-100.gif" width=300 style="display: inline-block; max-width: 50%; height: auto;">
 </p>
 
 
@@ -13,7 +13,7 @@ This project is part of the 2024 Estimation & Classification course at Instituto
 
 ## Features:
 - Random generation and simulation of partially observable gridworlds implemented with [Farama's Gym Environment](https://gymnasium.farama.org/).
-- Localization of a robot navigating the environment using HMMs.
+- Localization of a robot navigating the environment using HMMs and the forward-backward algorithm.
 - Visualization of global state and local observations with and state probability distribution.
 - Interactive display with pre-loaded examples: [link](https://alcedok.github.io/EC-course-mini-project/).
 
