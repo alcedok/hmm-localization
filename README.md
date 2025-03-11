@@ -9,13 +9,13 @@
 
 ## Description
 
-This project is part of the 2024 Estimation & Classification course at Instituto Superior Técnico (IST) in Lisboa. It demonstrates how to perform localization of a robot in a 2D gridworld using Hidden Markov Models (HMMs). Explore results in the interactive display: [https://alcedok.github.io/EC-course-mini-project/](https://alcedok.github.io/EC-course-mini-project/)
+This project is part of the 2024 Estimation & Classification course at Instituto Superior Técnico (IST) in Lisboa. It demonstrates how to perform localization of a robot in a 2D gridworld using Hidden Markov Models (HMMs). Explore results in the interactive display: [https://alcedok.github.io/hmm-localization/](https://alcedok.github.io/hmm-localization/)
 
 ## Features:
 - Random generation and simulation of partially observable gridworlds implemented with [Farama's Gym Environment](https://gymnasium.farama.org/).
 - Localization of a robot navigating the environment using HMMs and the forward-backward algorithm.
 - Visualization of global state and local observations with and state probability distribution.
-- Interactive display with pre-loaded examples: [link](https://alcedok.github.io/EC-course-mini-project/).
+- Interactive display with pre-loaded examples: [link](https://alcedok.github.io/hmm-localization/).
 
 ## Installation
 1. Clone the repository:
