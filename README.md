@@ -21,7 +21,7 @@ This project is part of the 2024 Estimation & Classification course at Instituto
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/alcedok/EC-course-mini-project.git
+   git clone https://github.com/alcedok/hmm-localization.git
    ```
 2. Install dependencies:
     ```bash
